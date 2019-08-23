@@ -46,3 +46,14 @@ func (f *Filecoin) ShowReceipts(ctx context.Context, ref cid.Cid) ([]*types.Mess
 
 	return out, nil
 }
+
+// ShowBlock runs the `show block` command against the filecoin process
+func (f *Filecoin) ShowBlock(ctx context.Context, ref cid.Cid) (*types.FullBlock, error) {
+	var out types.FullBlock
+
+	sref := ref.String()
+	if err := f.RunCmdJSONWithStdin(ctx, nil, &out, "go-filecoin", "show", "block", sref); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}

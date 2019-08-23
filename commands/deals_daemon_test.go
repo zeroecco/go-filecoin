@@ -400,7 +400,6 @@ func setupDeal(
 
 	sinfo := pparams.SupportedSectors[0]
 
-	// Calls MiningOnce on genesis (client). This also starts the Miner.
 	ask, err := series.CreateStorageMinerWithAsk(ctx, minerNode, collateral, price, expiry, sinfo.Size)
 	require.NoError(t, err)
 	require.NoError(t, minerNode.MiningStop(ctx))

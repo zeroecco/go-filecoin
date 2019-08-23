@@ -25,7 +25,7 @@ func parseInt(t *testing.T, s string) *big.Int {
 	return i
 }
 
-func TestMiningGenBlock(t *testing.T) {
+func TestMiningGenBlockOld(t *testing.T) {
 	tf.IntegrationTest(t)
 
 	d := makeTestDaemonWithMinerAndStart(t)
@@ -43,6 +43,36 @@ func TestMiningGenBlock(t *testing.T) {
 	sum := new(big.Int)
 
 	assert.Equal(t, sum.Add(beforeBalance, big.NewInt(1000)), afterBalance)
+}
+
+func TestMiningGenBlock(t *testing.T) {
+	tf.IntegrationTest(t)
+
+	ctx, env := fastesting.NewTestEnvironment(context.Background(), t, fast.FilecoinOpts{})
+	defer func() {
+		require.NoError(t, env.Teardown(ctx))
+	}()
+
+	d := env.GenesisMiner
+
+	addr, err := d.MiningAddress(ctx)
+	require.NoError(t, err)
+
+	beforeBalance, err := d.WalletBalance(ctx, addr)
+	require.NoError(t, err)
+
+	blkCid, err := d.MiningOnce(ctx)
+	require.NoError(t, err)
+
+	blk, err := d.ShowBlock(ctx, blkCid)
+	require.NoError(t, err)
+	require.NotNil(t, blk)
+	assert.Equal(t, addr.String(), blk.Header.Miner.String())
+
+	afterBalance, err := d.WalletBalance(ctx, addr)
+	require.NoError(t, err)
+
+	assert.Equal(t, beforeBalance.Add(types.NewAttoFILFromFIL(1000)), afterBalance)
 }
 
 func TestMiningSealNow(t *testing.T) {
