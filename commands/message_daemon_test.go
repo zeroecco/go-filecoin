@@ -1,7 +1,9 @@
 package commands_test
 
 import (
+	"context"
 	"encoding/json"
+	"math/big"
 	"strconv"
 	"strings"
 	"testing"
@@ -14,6 +16,8 @@ import (
 	"github.com/filecoin-project/go-filecoin/fixtures"
 	th "github.com/filecoin-project/go-filecoin/testhelpers"
 	tf "github.com/filecoin-project/go-filecoin/testhelpers/testflags"
+	"github.com/filecoin-project/go-filecoin/tools/fast"
+	"github.com/filecoin-project/go-filecoin/tools/fast/fastesting"
 	"github.com/filecoin-project/go-filecoin/types"
 )
 
@@ -71,43 +75,33 @@ func TestMessageSend(t *testing.T) {
 }
 
 func TestMessageWait(t *testing.T) {
-	tf.IntegrationTest(t)
+	ctx, env := fastesting.NewTestEnvironment(context.Background(), t, fast.FilecoinOpts{})
+	defer func() {
+		require.NoError(t, env.Teardown(ctx))
+	}()
 
-	d := makeTestDaemonWithMinerAndStart(t)
-	defer d.ShutdownSuccess()
+	d := env.GenesisMiner
 
-	t.Run("[success] transfer only", func(t *testing.T) {
-		msg := d.RunSuccess("message", "send",
-			"--from", fixtures.TestAddresses[0],
-			"--gas-price", "1",
-			"--gas-limit", "300",
-			fixtures.TestAddresses[1],
-		)
-		msgcid := msg.ReadStdoutTrimNewlines()
+	_, err := d.MiningAddress(ctx)
+	require.NoError(t, err)
 
-		// Fail with timeout before the message has been mined
-		d.RunFail(
-			"deadline exceeded",
-			"message", "wait",
-			"--message=false",
-			"--receipt=false",
-			"--timeout=100ms",
-			"--return",
-			msgcid,
-		)
+	to := address.NewForTestGetter()()
 
-		d.RunSuccess("mining once")
+	mcid, err := d.MessageSend(ctx, to, "", fast.AOValue(0), fast.AOPrice(big.NewFloat(1.0)), fast.AOLimit(300))
+	require.NoError(t, err)
 
-		wait := d.RunSuccess(
-			"message", "wait",
-			"--message=false",
-			"--receipt=false",
-			"--timeout=1m",
-			"--return",
-			msgcid,
-		)
-		assert.Equal(t, "", wait.ReadStdout())
-	})
+	res, err := d.MessageWait(ctx, mcid, fast.AOTimeout("100ms"), fast.AOReturn())
+	require.Error(t, err)
+	out, _ := d.LastCmdStdErrStr()
+	assert.Contains(t, out, "context deadline exceeded")
+	assert.Nil(t, res.Message)
+
+	_, err = d.MiningOnce(ctx)
+	require.NoError(t, err)
+
+	res, err = d.MessageWait(ctx, mcid, fast.AOTimeout("1m"), fast.AOReturn())
+	assert.NoError(t, err)
+	assert.NotNil(t, res.Message)
 }
 
 func TestMessageSendBlockGasLimit(t *testing.T) {

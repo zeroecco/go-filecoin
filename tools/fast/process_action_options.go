@@ -130,3 +130,17 @@ func AOSectorSize(ba *types.BytesAmount) ActionOption {
 		return []string{"--sectorsize", ba.String()}
 	}
 }
+
+// AOTimeout  provides the --timeout option to message wait
+func AOTimeout(to string) ActionOption {
+	return func() []string {
+		return []string{"--timeout", to}
+	}
+}
+
+// AOReturn provides the --return option to message wait
+func AOReturn() ActionOption {
+	return func() []string {
+		return []string{"--return"}
+	}
+}
