@@ -35,6 +35,7 @@ import (
 	"github.com/filecoin-project/go-filecoin/protocol/retrieval"
 	"github.com/filecoin-project/go-filecoin/protocol/storage"
 	"github.com/filecoin-project/go-filecoin/repo"
+	rest_api "github.com/filecoin-project/go-filecoin/rest-api"
 	"github.com/filecoin-project/go-filecoin/state"
 	"github.com/filecoin-project/go-filecoin/types"
 	"github.com/filecoin-project/go-filecoin/version"
@@ -219,6 +220,9 @@ func (node *Node) Start(ctx context.Context) error {
 		if err := node.setupHeartbeatServices(ctx); err != nil {
 			return errors.Wrap(err, "failed to start heartbeat services")
 		}
+
+		// Start the REST API.
+		rest_api.Launch(ctx, node.PorcelainAPI, 8088)
 	}
 
 	return nil
