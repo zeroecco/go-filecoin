@@ -9,7 +9,7 @@ require (
 	github.com/Microsoft/go-winio v0.4.12 // indirect
 	github.com/Workiva/go-datastructures v1.0.50
 	github.com/btcsuite/goleveldb v1.0.0 // indirect
-	github.com/carbonfive/go-filecoin-rest-api v0.0.0-20190927235843-f85ad4648391
+	github.com/carbonfive/go-filecoin-rest-api v0.0.0-20191002205901-ca8a25d20be0
 	github.com/coreos/bbolt v1.3.3 // indirect
 	github.com/coreos/etcd v3.3.13+incompatible // indirect
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect

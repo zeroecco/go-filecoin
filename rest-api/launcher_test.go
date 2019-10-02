@@ -41,7 +41,7 @@ func TestLaunchHappyPath(t *testing.T) {
 		path := fmt.Sprintf("actors/%s", defaultAddr.String())
 		resp := RequireGetResponseBody(t, port, path)
 		var actor2 actor.Actor
-		assert.NoError(t, actor.UnmarshalStorage(resp, &actor2))
+		require.NoError(t, actor.UnmarshalStorage(resp, &actor2))
 		assert.True(t, actor2.Code.Equals(actor1.Code))
 	})
 
@@ -77,7 +77,7 @@ func (tp *TestPorcelain) ConfigGet(config string) (interface{}, error) {
 }
 
 func RequireGetResponseBody(t *testing.T, port int, path string) []byte {
-	uri := fmt.Sprintf("http://localhost:%d/%s", port, path)
+	uri := fmt.Sprintf("http://localhost:%d/api/filecoin/v1/%s", port, path)
 	resp, err := http.Get(uri)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
