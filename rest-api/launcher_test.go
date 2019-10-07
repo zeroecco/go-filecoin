@@ -17,6 +17,7 @@ import (
 	"github.com/filecoin-project/go-filecoin/actor"
 	"github.com/filecoin-project/go-filecoin/address"
 	. "github.com/filecoin-project/go-filecoin/rest-api"
+	"github.com/filecoin-project/go-filecoin/state"
 	"github.com/filecoin-project/go-filecoin/testhelpers"
 )
 
@@ -25,7 +26,7 @@ func TestLaunchHappyPath(t *testing.T) {
 	actor1 := actor.Actor{Code: tc}
 	defaultAddr := address.TestAddress
 
-	porc := TestPorcelain{actor: &actor1, walletAddr: defaultAddr}
+	porc := TestPorcelain{actors: []*actor.Actor{&actor1}, walletAddr: defaultAddr}
 
 	port, err := testhelpers.GetFreePort()
 	require.NoError(t, err)
@@ -55,15 +56,41 @@ func TestLaunchHappyPath(t *testing.T) {
 
 type TestPorcelain struct {
 	walletAddr                  address.Address
-	actor                       *actor.Actor
+	actors                      []*actor.Actor
 	failActorGet, failConfigGet bool
 }
 
+// ActorGet returns error if the porcelain is configured to fail, or if there are no actors.
+// Otherwise it returns just the first actor.
 func (tp *TestPorcelain) ActorGet(ctx context.Context, addr address.Address) (*actor.Actor, error) {
 	if tp.failActorGet {
 		return nil, errors.New("ActorGet failed")
 	}
-	return tp.actor, nil
+	if len(tp.actors) == 0 {
+		return nil, errors.New("No actors")
+	}
+	return tp.actors[0], nil
+}
+
+// ActorLs returns all actors as a channel
+func (tp *TestPorcelain) ActorLs(ctx context.Context) (<-chan state.GetAllActorsResult, error) {
+	out := make(chan state.GetAllActorsResult)
+	defer close(out)
+	for _, testActor := range tp.actors {
+		select {
+		case <-ctx.Done():
+			out <- state.GetAllActorsResult{
+				Error: ctx.Err(),
+			}
+			return out, ctx.Err()
+		default:
+			out <- state.GetAllActorsResult{
+				Address: address.TestAddress.String(),
+				Actor:   testActor,
+			}
+		}
+	}
+	return out, nil
 }
 
 func (tp *TestPorcelain) ConfigGet(config string) (interface{}, error) {

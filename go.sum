@@ -63,6 +63,8 @@ github.com/btcsuite/winsvc v1.0.0/go.mod h1:jsenWakMcC0zFBFurPLEAyrnc/teJEM1O46f
 github.com/carbonfive/go-filecoin-rest-api v0.0.0-20190927235843-f85ad4648391/go.mod h1:RpA/PkQpwS0vpemMJqoJsShkM0quP57NBF5vB4V80tI=
 github.com/carbonfive/go-filecoin-rest-api v0.0.0-20191002205901-ca8a25d20be0 h1:XTULmYj7yrJzrK66SPqwByjIm16ZvtjN6Ujkm4Fo9ac=
 github.com/carbonfive/go-filecoin-rest-api v0.0.0-20191002205901-ca8a25d20be0/go.mod h1:GWX5DVa+mxb4PIq4pm2NJjhmSRGD+S9FrUw6L/xRv+E=
+github.com/carbonfive/go-filecoin-rest-api v0.0.0-20191003223341-9917c3d8f424 h1:tTxwavdsSYoB9gU/PAc42WAgbZKLgm+DYAtYHfECK9w=
+github.com/carbonfive/go-filecoin-rest-api v0.0.0-20191003223341-9917c3d8f424/go.mod h1:N5BLF8H7p4g1Y7aq9SkPmTkKAZ5ywBP2mlWC4h3vVrA=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=

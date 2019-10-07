@@ -6,12 +6,14 @@ import (
 
 	"github.com/filecoin-project/go-filecoin/actor"
 	"github.com/filecoin-project/go-filecoin/address"
+	"github.com/filecoin-project/go-filecoin/state"
 )
 
 // RESTPorcelain is the subset of porcelain and plumbing commands needed for the
 // REST API callbacks
 type RESTPorcelain interface {
 	ActorGet(context.Context, address.Address) (*actor.Actor, error)
+	ActorLs(context.Context) (<-chan state.GetAllActorsResult, error)
 	ConfigGet(string) (interface{}, error)
 }
 
