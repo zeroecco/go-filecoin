@@ -67,21 +67,21 @@ var actorLsCmd = &cmds.Command{
 
 			switch {
 			case result.Actor.Empty(): // empty (balance only) actors have no Code.
-				output = MakeActorView(result.Actor, result.Address, nil)
+				output = makeActorView(result.Actor, result.Address, nil)
 			case result.Actor.Code.Equals(types.AccountActorCodeCid):
-				output = MakeActorView(result.Actor, result.Address, &account.Actor{})
+				output = makeActorView(result.Actor, result.Address, &account.Actor{})
 			case result.Actor.Code.Equals(types.InitActorCodeCid):
-				output = MakeActorView(result.Actor, result.Address, &initactor.Actor{})
+				output = makeActorView(result.Actor, result.Address, &initactor.Actor{})
 			case result.Actor.Code.Equals(types.StorageMarketActorCodeCid):
-				output = MakeActorView(result.Actor, result.Address, &storagemarket.Actor{})
+				output = makeActorView(result.Actor, result.Address, &storagemarket.Actor{})
 			case result.Actor.Code.Equals(types.PaymentBrokerActorCodeCid):
-				output = MakeActorView(result.Actor, result.Address, &paymentbroker.Actor{})
+				output = makeActorView(result.Actor, result.Address, &paymentbroker.Actor{})
 			case result.Actor.Code.Equals(types.MinerActorCodeCid):
-				output = MakeActorView(result.Actor, result.Address, &miner.Actor{})
+				output = makeActorView(result.Actor, result.Address, &miner.Actor{})
 			case result.Actor.Code.Equals(types.BootstrapMinerActorCodeCid):
-				output = MakeActorView(result.Actor, result.Address, &miner.Actor{})
+				output = makeActorView(result.Actor, result.Address, &miner.Actor{})
 			default:
-				output = MakeActorView(result.Actor, result.Address, nil)
+				output = makeActorView(result.Actor, result.Address, nil)
 			}
 
 			if err := re.Emit(output); err != nil {
@@ -107,7 +107,7 @@ var actorLsCmd = &cmds.Command{
 	},
 }
 
-func MakeActorView(act *actor.Actor, addr string, actType exec.ExecutableActor) *ActorView {
+func makeActorView(act *actor.Actor, addr string, actType exec.ExecutableActor) *ActorView {
 	var actorType string
 	var exports readableExports
 	if actType == nil {

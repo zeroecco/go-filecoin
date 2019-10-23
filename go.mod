@@ -20,6 +20,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.3.3 // indirect
 	github.com/filecoin-project/go-bls-sigs v0.0.0
+	github.com/filecoin-project/go-http-api v0.0.0-20191022215558-f2f3a75ba7c1
 	github.com/filecoin-project/go-leb128 v0.0.0-20190212224330-8d79a5489543
 	github.com/filecoin-project/go-sectorbuilder v0.0.0-20190801004428-e75bc9b0aaea
 	github.com/go-kit/kit v0.9.0 // indirect

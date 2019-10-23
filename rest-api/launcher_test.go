@@ -6,10 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/big"
 	"net/http"
 	"testing"
 
+	apiTypes "github.com/filecoin-project/go-http-api/types"
 	"github.com/ipfs/go-cid"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multihash"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,14 +22,19 @@ import (
 	. "github.com/filecoin-project/go-filecoin/rest-api"
 	"github.com/filecoin-project/go-filecoin/state"
 	"github.com/filecoin-project/go-filecoin/testhelpers"
+	"github.com/filecoin-project/go-filecoin/types"
 )
 
 func TestLaunchHappyPath(t *testing.T) {
-	tc := requireTestCID(t, []byte("nothing"))
-	actor1 := actor.Actor{Code: tc}
+	actor1 := testhelpers.RequireNewAccountActor(t, types.NewAttoFILFromFIL(12))
 	defaultAddr := address.TestAddress
-
-	porc := TestPorcelain{actors: []*actor.Actor{&actor1}, walletAddr: defaultAddr}
+	pid, err := testhelpers.RandPeerID()
+	require.NoError(t, err)
+	porc := TestPorcelain{
+		actors:     []*actor.Actor{actor1},
+		nodeID:     pid,
+		walletAddr: defaultAddr,
+	}
 
 	port, err := testhelpers.GetFreePort()
 	require.NoError(t, err)
@@ -41,20 +49,30 @@ func TestLaunchHappyPath(t *testing.T) {
 	t.Run("actor endpoint returns actor", func(t *testing.T) {
 		path := fmt.Sprintf("actors/%s", defaultAddr.String())
 		resp := RequireGetResponseBody(t, port, path)
-		var actor2 actor.Actor
-		require.NoError(t, actor.UnmarshalStorage(resp, &actor2))
-		assert.True(t, actor2.Code.Equals(actor1.Code))
+		var act apiTypes.Actor
+		require.NoError(t, json.Unmarshal(resp, &act))
+
+		assert.True(t, actor1.Code.Equals(act.Code))
+		assert.True(t, actor1.Head.Equals(act.Head))
+		assert.Equal(t, new(big.Int).SetUint64(uint64(actor1.Nonce)), act.Nonce)
+		assert.Equal(t, actor1.Balance.AsBigInt(), act.Balance)
 	})
 
 	t.Run("node endpoint returns correct value", func(t *testing.T) {
 		resp := RequireGetResponseBody(t, port, "control/node")
-		var node string
+		var node apiTypes.Node
+
 		require.NoError(t, json.Unmarshal(resp, &node))
-		assert.Equal(t, node, defaultAddr.String())
+		assert.Equal(t, node.Kind, "node")
+		assert.Equal(t, node.Id, pid.String())
+		assert.Len(t, node.Addresses, 1)
+		assert.Equal(t, node.Addresses[0], defaultAddr.String())
 	})
+
 }
 
 type TestPorcelain struct {
+	nodeID                      peer.ID
 	walletAddr                  address.Address
 	actors                      []*actor.Actor
 	failActorGet, failConfigGet bool
@@ -64,10 +82,10 @@ type TestPorcelain struct {
 // Otherwise it returns just the first actor.
 func (tp *TestPorcelain) ActorGet(ctx context.Context, addr address.Address) (*actor.Actor, error) {
 	if tp.failActorGet {
-		return nil, errors.New("ActorGet failed")
+		return nil, errors.New("actorGet failed")
 	}
 	if len(tp.actors) == 0 {
-		return nil, errors.New("No actors")
+		return nil, errors.New("no actors")
 	}
 	return tp.actors[0], nil
 }
@@ -103,6 +121,12 @@ func (tp *TestPorcelain) ConfigGet(config string) (interface{}, error) {
 	return "", errors.New("bad config call")
 }
 
+func (tp *TestPorcelain) NetworkGetPeerID() peer.ID {
+	return tp.nodeID
+}
+func (tp *TestPorcelain) WalletAddresses() []address.Address {
+	return []address.Address{tp.walletAddr}
+}
 func RequireGetResponseBody(t *testing.T, port int, path string) []byte {
 	uri := fmt.Sprintf("http://localhost:%d/api/filecoin/v1/%s", port, path)
 	resp, err := http.Get(uri)
@@ -115,10 +139,4 @@ func RequireGetResponseBody(t *testing.T, port int, path string) []byte {
 	body, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 	return body
-}
-
-func requireTestCID(t *testing.T, data []byte) cid.Cid {
-	hash, err := multihash.Sum(data, multihash.SHA2_256, -1)
-	require.NoError(t, err)
-	return cid.NewCidV1(cid.DagCBOR, hash)
 }
